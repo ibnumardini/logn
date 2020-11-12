@@ -1,6 +1,10 @@
-# Logn
+<p align="center">
+    <img src="logn.png"></img>
+</p>
 
-Logn is a simple log management library for go app ツ.
+<p align="center">
+    Logn is a simple log management library for go app ツ.
+</p>
 
 ## Installation
 
