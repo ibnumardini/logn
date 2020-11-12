@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-    Logn is a simple log management library for go app ツ.
+    Logn :/logen/ is a simple log management library for go app ツ.
 </p>
 
 ## Installation
