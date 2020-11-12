@@ -1,6 +1,6 @@
 # Logn
 
-Logn is a ordinary log library management for golang -app.
+Logn is a ordinary log library management for golang-app.
 
 ## Installation
 
