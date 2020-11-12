@@ -129,10 +129,10 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 	logMessageTg := fmt.Sprintf("*"+appName+"* \n\n - *Timestamp:* %v \n - *ErrorType:* %v \n - *Message:* %v \n\n - *Scene:* %s", YMDHis, title, logMessage, loc)
 
 	var isSendTg string
-	if len(os.Getenv("send_tg")) == 0 {
+	if len(os.Getenv("tg_send")) == 0 {
 		isSendTg = "false"
 	} else {
-		isSendTg = os.Getenv("send_tg")
+		isSendTg = os.Getenv("tg_send")
 	}
 
 	if typeLog != "info" && isSendTg == "true" {
@@ -173,7 +173,6 @@ func timeNow(args string) (string, error) {
 }
 
 func sendTg(logMessage interface{}) error {
-
 	var (
 		token  string
 		chatId string

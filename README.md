@@ -18,7 +18,7 @@ You can put this config in init function
 os.Setenv("logn_app_name", "Logn-App LOG") // your app name
 os.Setenv("logn_dir", "log/") // set dir to save your log
 os.Setenv("logn_default_loc", "Asia/Jakarta") // timezone in log
-os.Setenv("send_tg", "true") // if you need report log type warning & error to telegam
+os.Setenv("tg_send", "true") // if you need report log type warning & error to telegam
 os.Setenv("tg_token", "1416xxxxx:AAF3VOBjt7rIeO4tUL_dHxG0qxxxxxxxxx") // tg bot token
 os.Setenv("tg_chat_id", "-4121xxxx") //  tg grup / chat_id
 ```
