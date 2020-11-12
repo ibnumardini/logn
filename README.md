@@ -12,7 +12,7 @@ go get -u github.com/ibnumardini/logn
 
 ## Configuration
 
-You can put this config in init function
+You can put this config in init function.
 
 ```go
 os.Setenv("logn_app_name", "Logn-App LOG") // your app name
@@ -33,7 +33,7 @@ logn.ErrorLog("this is log error")
 
 ## Contributing
 
-Thank you for considering contributing to the Logn!
+Thank you for considering contributing to the Logn!.
 
 ## License
 
