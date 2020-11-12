@@ -41,4 +41,4 @@ Thank you for considering contributing to the Logn!.
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+Logn is under the [MIT License](LICENSE.md)
