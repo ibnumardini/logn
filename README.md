@@ -2,6 +2,13 @@
     <img src="logn-logo.png"></img>
 </p>
 
+<div align="center">
+    
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/ibnumardini/logn)
+![GitHub](https://img.shields.io/github/license/ibnumardini/logn)
+
+</div>
+
 <p align="center">
     Logn <em><strong>:/logen/</strong></em> is a simple log management library for go app ツ.
 </p>
