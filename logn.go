@@ -14,7 +14,7 @@ import (
 // InfoLog used for log type info
 func InfoLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", chopPath(fileName), runtime.FuncForPC(function).Name(), line)
+	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
 
 	err := makeLog(0, "INFO", logMessage, loc)
 	if err != nil {
@@ -26,7 +26,7 @@ func InfoLog(logMessage interface{}) error {
 // WarningLog used for log type warning
 func WarningLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", chopPath(fileName), runtime.FuncForPC(function).Name(), line)
+	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
 
 	err := makeLog(1, "WARNING", logMessage, loc)
 	if err != nil {
@@ -38,7 +38,7 @@ func WarningLog(logMessage interface{}) error {
 // WarningLog used for log type error
 func ErrorLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", chopPath(fileName), runtime.FuncForPC(function).Name(), line)
+	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
 
 	err := makeLog(2, "ERROR", logMessage, loc)
 	if err != nil {
@@ -117,7 +117,7 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 
 	log.SetOutput(file)
 
-	log.Printf("%v %v %v - %s", YMDHis, title, logMessage, loc)
+	log.Printf("%v %v %v - %s", YMDHis, title, logMessage, strings.Replace(loc, "*", "", -1))
 
 	var appName string
 	if len(os.Getenv("logn_app_name")) == 0 {
@@ -199,7 +199,7 @@ func sendTg(logMessage interface{}) error {
 	return nil
 }
 
-func chopPath(original string) string {
+func filePath(original string) string {
 	i := strings.LastIndex(original, "/")
 	if i == -1 {
 		return original
