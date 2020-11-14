@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="logn-logo.png"></img>
+    <img src="logo.png"></img>
 </p>
 
 <div align="center">
@@ -23,13 +23,13 @@ go get -u github.com/ibnumardini/logn
 
 ## Configuration
 
-You can put this config in init function.
+Set your env for configuration Logn.
 
 ```go
 os.Setenv("logn_app_name", "Logn-App LOG") // your app name
 os.Setenv("logn_dir", "log/") // set dir to save your log
 os.Setenv("logn_default_loc", "Asia/Jakarta") // timezone in log
-os.Setenv("tg_send", "true") // if you need report log type warning & error to telegam
+os.Setenv("tg_send", "true") // set true, if you need report log type warning & error to telegam
 os.Setenv("tg_token", "1416xxxxx:AAF3VOBjt7rIeO4tUL_dHxG0qxxxxxxxxx") // tg bot token
 os.Setenv("tg_chat_id", "-4121xxxx") //  tg grup / chat_id
 ```
