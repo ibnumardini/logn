@@ -116,7 +116,7 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 	defer file.Close()
 
 	log.SetOutput(file)
-
+	log.SetFlags(0)
 	log.Printf("%v %v %v - %s", YMDHis, title, logMessage, strings.Replace(loc, "*", "", -1))
 
 	var appName string
