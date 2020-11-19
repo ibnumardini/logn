@@ -126,7 +126,7 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 		appName = os.Getenv("logn_app_name")
 	}
 
-	logMessageTg := fmt.Sprintf("*"+appName+"* \n\n - *Timestamp:* %v \n - *ErrorType:* %v \n - *Message:* %v \n\n - *Scene:* %s", YMDHis, title, logMessage, loc)
+	logMessageTg := fmt.Sprintf("*"+appName+"* \n\n - *Timestamp:* %v \n - *Type:* %v \n - *Message:* %v \n\n - *Scene:* %s", YMDHis, title, logMessage, loc)
 
 	var isSendTg string
 	if len(os.Getenv("tg_send")) == 0 {
