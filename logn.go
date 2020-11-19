@@ -13,10 +13,7 @@ import (
 
 // InfoLog used for log type info
 func InfoLog(logMessage interface{}) error {
-	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
-
-	err := makeLog(0, "INFO", logMessage, loc)
+	err := makeLog(0, "INFO", logMessage, "")
 	if err != nil {
 		return err
 	}
