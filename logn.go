@@ -23,7 +23,7 @@ func InfoLog(logMessage interface{}) error {
 // WarningLog used for log type warning
 func WarningLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
+	loc := fmt.Sprintf(" - file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
 
 	err := makeLog(1, "WARNING", logMessage, loc)
 	if err != nil {
@@ -35,7 +35,7 @@ func WarningLog(logMessage interface{}) error {
 // WarningLog used for log type error
 func ErrorLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf("file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
+	loc := fmt.Sprintf(" - file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
 
 	err := makeLog(2, "ERROR", logMessage, loc)
 	if err != nil {
@@ -114,7 +114,7 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 
 	log.SetOutput(file)
 	log.SetFlags(0)
-	log.Printf("%v %v %v - %s", YMDHis, title, logMessage, strings.Replace(loc, "*", "", -1))
+	log.Printf("%v %v %v %s", YMDHis, title, logMessage, strings.Replace(loc, "*", "", -1))
 
 	var appName string
 	if len(os.Getenv("logn_app_name")) == 0 {
