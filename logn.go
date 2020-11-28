@@ -1,12 +1,16 @@
 package logn
 
 import (
+	"archive/zip"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -135,6 +139,9 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 	if typeLog != "info" && isSendTg == "true" {
 		sendTg(url.QueryEscape(logMessageTg))
 	}
+
+	makeZip()
+
 	return nil
 }
 
@@ -203,4 +210,159 @@ func filePath(original string) string {
 	} else {
 		return original[i+1:]
 	}
+}
+
+// CronZip used for cron zipped log
+func CronZip() error {
+	if len(os.Args) == 2 {
+		if os.Args[1] == "logn_zip_run" {
+			err := makeZip()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func makeZip() error {
+	var dirZip, isZipped, dir string
+
+	if len(os.Getenv("logn_dir")) != 0 {
+		dir = os.Getenv("logn_dir")
+	} else {
+		dir = "log/"
+	}
+
+	if len(os.Getenv("logn_dir_zip")) != 0 {
+		dirZip = os.Getenv("logn_dir_zip")
+	} else {
+		dirZip = "log_zip/"
+	}
+
+	if len(os.Getenv("is_zipped")) != 0 {
+		isZipped = os.Getenv("is_zipped")
+	} else {
+		isZipped = "false"
+	}
+
+	year, err := timeNow("Y")
+	if err != nil {
+		return err
+	}
+
+	month, err := timeNow("M")
+	if err != nil {
+		return err
+	}
+
+	day, err := timeNow("D")
+	if err != nil {
+		return err
+	}
+
+	if day == "01" && isZipped == "true" {
+
+		monthInt, err := strconv.Atoi(month)
+		if err != nil {
+			return err
+		}
+
+		prevMonth := monthInt - 1
+
+		if month == "01" {
+			prevMonth = 12
+
+			yearInt, err := strconv.Atoi(year)
+			if err != nil {
+				return err
+			}
+
+			prevYear := yearInt - 1
+
+			year = strconv.Itoa(prevYear)
+		}
+
+		dirFile := dirZip + year
+
+		_, errYear := os.Stat(dirFile)
+		if os.IsNotExist(errYear) {
+			errDir := os.MkdirAll(dirFile, 0755)
+			if errDir != nil {
+				return errDir
+			}
+		}
+
+		filename := fmt.Sprintf("log_%s_%s.zip", year, strconv.Itoa(prevMonth))
+
+		baseDir := dir + year + "/" + strconv.Itoa(prevMonth) + "/"
+		_, errYear = os.Stat(baseDir)
+		if os.IsNotExist(errYear) {
+			return errors.New("base dir doesn't exists")
+		}
+
+		outDir := dirFile + "/" + filename
+
+		err = zipWriter(baseDir, outDir)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+
+	return nil
+}
+
+func zipWriter(baseDir, outDir string) error {
+	outFile, err := os.Create(outDir)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	w := zip.NewWriter(outFile)
+
+	err = addFiles(w, baseDir, "")
+	if err != nil {
+		return err
+	}
+
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func addFiles(w *zip.Writer, basePath, baseInZip string) error {
+	files, err := ioutil.ReadDir(basePath)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		fmt.Println(basePath + file.Name())
+		if !file.IsDir() {
+			dat, err := ioutil.ReadFile(basePath + file.Name())
+			if err != nil {
+				return err
+			}
+
+			f, err := w.Create(baseInZip + file.Name())
+			if err != nil {
+				return err
+			}
+			_, err = f.Write(dat)
+			if err != nil {
+				return err
+			}
+		} else if file.IsDir() {
+			newBase := basePath + file.Name() + "/"
+
+			addFiles(w, newBase, baseInZip+file.Name()+"/")
+		}
+	}
+
+	return nil
 }
