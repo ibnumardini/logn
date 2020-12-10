@@ -304,6 +304,10 @@ func makeZip() error {
 
 		outDir := dirFile + "/" + filename
 
+		if _, err := os.Stat(outDir); err == nil {
+			return errors.New("file is already exists")
+		}
+
 		err = zipWriter(baseDir, outDir)
 		if err != nil {
 			fmt.Println(err.Error())
