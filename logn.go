@@ -214,7 +214,7 @@ func filePath(original string) string {
 
 // CronZip used for cron zipped log
 func CronZip() error {
-	if len(os.Args) == 2 {
+	if len(os.Args) >= 2 {
 		if os.Args[1] == "logn_zip_run" {
 			err := makeZip()
 			if err != nil {
