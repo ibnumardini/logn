@@ -15,7 +15,7 @@ Logn <em><strong>:/logen/</strong></em> is a simple log management library for g
 - Generate log by day
 - Generate log by type
 - Report log type Warning / Error to telegram via bot
-- Zipping log data every ont month
+- Zipping log data every one month
 - Deleting old log directory
 
 ## Logn Tree
@@ -49,7 +49,7 @@ See the [wiki](https://github.com/ibnumardini/logn/wiki).
 See the [wiki](https://github.com/ibnumardini/logn/wiki).
 
 ## Contributing
-Let's build this Logn library to make it even better, The contribution guide can be found in [here](/ibnumardini/logn/CONTRIBUTIONS.md).
+Let's build this Logn library to make it even better, The contribution guide can be found in [here](CONTRIBUTIONS.md).
 
 ## License
 Logn is under the [MIT License](LICENSE.md)
