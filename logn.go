@@ -51,10 +51,10 @@ func ErrorLog(logMessage interface{}) error {
 	return nil
 }
 
-// CronZip used for cron zipped log
-func CronZip() error {
-	if len(os.Args) >= 2 {
-		if os.Args[1] == "logn_zip_run" {
+// CronZip used for run logn zip automate with cron
+func CronZip(argsPos int) error {
+	if len(os.Args) >= argsPos+1 {
+		if os.Args[argsPos] == "logn_zip_run" {
 			err := makeZip()
 			if err != nil {
 				return err
