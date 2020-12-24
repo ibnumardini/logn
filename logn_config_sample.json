@@ -1,0 +1,19 @@
+{
+  "logn_is_active": true,
+  "log": {
+    "logn_dir": "log/",
+    "logn_default_loc": "Asia/Jakarta",
+    "logn_print_console": true
+  },
+  "tg": {
+    "logn_tg_send": false,
+    "logn_app_name": "Logn-App LOG",
+    "logn_tg_token": "1416xxxxx:AAF3VOBjt7rIeO4tUL_dHxG0qxxxxxxxxx",
+    "logn_tg_chat_id": "-4947xxxxx"
+  },
+  "zip": {
+    "logn_is_zipped": false,
+    "logn_dir_zip": "log_zip/",
+    "logn_del_old_dir": false
+  }
+}
