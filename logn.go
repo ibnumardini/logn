@@ -17,58 +17,73 @@ import (
 
 // InfoLog used for log type info
 func InfoLog(logMessage interface{}) error {
-	err := makeLog(0, "INFO", logMessage, "")
+	err := makeLog(0, "INFO :", logMessage, "")
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // WarningLog used for log type warning
 func WarningLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf(" - file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
+	loc := fmt.Sprintf("- file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
 
-	err := makeLog(1, "WARNING", logMessage, loc)
+	err := makeLog(1, "WARNING :", logMessage, loc)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-// WarningLog used for log type error
+// ErrorLog used for log type error
 func ErrorLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
-	loc := fmt.Sprintf(" - file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
+	loc := fmt.Sprintf("- file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
 
-	err := makeLog(2, "ERROR", logMessage, loc)
+	err := makeLog(2, "ERROR :", logMessage, loc)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func makeLog(typeLogs int, title string, logMessage interface{}, loc string) error {
-	var (
-		dir     string
-		typeLog string
-	)
-
-	if len(os.Getenv("logn_dir")) != 0 {
-		dir = os.Getenv("logn_dir")
-	} else {
-		dir = "log/"
+// CronZip used for cron zipped log
+func CronZip() error {
+	if len(os.Args) >= 2 {
+		if os.Args[1] == "logn_zip_run" {
+			err := makeZip()
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	switch typLog := typeLogs; typLog {
+	return nil
+}
+
+func makeLog(logTypes int, title string, logMessage interface{}, loc string) error {
+	config, err := config()
+	if err != nil {
+		return err
+	}
+
+	if !config.LognIsActive {
+		return errors.New("logn is not active")
+	}
+
+	var logType string
+
+	switch logTypes {
 	case 0:
-		typeLog = "info"
+		logType = "info"
 	case 1:
-		typeLog = "warning"
+		logType = "warning"
 	case 2:
-		typeLog = "error"
-	default:
-		typeLog = "other"
+		logType = "error"
 	}
 
 	year, err := timeNow("Y")
@@ -92,9 +107,9 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 	}
 
 	var dates = map[string]string{
-		"year":  dir + year,
-		"month": dir + year + "/" + month,
-		"day":   dir + year + "/" + month + "/" + day,
+		"year":  config.Log.LognDir + year,
+		"month": config.Log.LognDir + year + "/" + month,
+		"day":   config.Log.LognDir + year + "/" + month + "/" + day,
 	}
 
 	for _, date := range dates {
@@ -107,7 +122,7 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 		}
 	}
 
-	logFile := dir + year + "/" + month + "/" + day + "/" + typeLog + ".log"
+	logFile := config.Log.LognDir + year + "/" + month + "/" + day + "/" + logType + ".log"
 
 	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -120,49 +135,40 @@ func makeLog(typeLogs int, title string, logMessage interface{}, loc string) err
 	log.SetFlags(0)
 	log.Printf("%v %v %v %s", YMDHis, title, logMessage, strings.Replace(loc, "*", "", -1))
 
-	var appName string
-	if len(os.Getenv("logn_app_name")) == 0 {
-		appName = "Logn-App LOG"
-	} else {
-		appName = os.Getenv("logn_app_name")
+	if config.Log.LognPrintConsole {
+		fmt.Printf("%v %v %v %s\n", YMDHis, title, logMessage, strings.Replace(loc, "*", "", -1))
 	}
 
-	logMessageTg := fmt.Sprintf("*"+appName+"* \n\n - *Timestamp:* %v \n - *Type:* %v \n - *Message:* %v \n\n - *Scene:* %s", YMDHis, title, logMessage, loc)
+	logMessageTg := fmt.Sprintf("*"+config.Tg.LognAppName+"* \n\n - *Timestamp:* %v \n - *Type:* %v \n - *Message:* %v \n\n - *Scene:* %s", YMDHis, title[:len(title)-1], logMessage, loc)
 
-	var isSendTg string
-	if len(os.Getenv("tg_send")) == 0 {
-		isSendTg = "false"
-	} else {
-		isSendTg = os.Getenv("tg_send")
-	}
-
-	if typeLog != "info" && isSendTg == "true" {
+	if logType != "info" && config.Tg.LognTgSend {
 		sendTg(url.QueryEscape(logMessageTg))
 	}
 
-	makeZip()
+	if config.Zip.LognIsZipped {
+		makeZip()
+	}
 
 	return nil
 }
 
 func timeNow(args string) (string, error) {
+	config, err := config()
+	if err != nil {
+		return "", err
+	}
+
 	if len(args) == 0 {
 		args = "YMD"
 	}
 
-	var def_loc string
-	if len(os.Getenv("logn_default_loc")) != 0 {
-		def_loc = os.Getenv("logn_default_loc")
-	} else {
-		def_loc = "Asia/Jakarta"
+	loc, err := time.LoadLocation(config.Log.LognDefaultLoc)
+	if err != nil {
+		return "", err
 	}
 
-	loc, err := time.LoadLocation(def_loc)
-	if err != nil {
-		return "0", err
-	}
 	timein := time.Now().In(loc).String()
-	switch mode := args; mode {
+	switch args {
 	case "Y":
 		return timein[:4], nil
 	case "M":
@@ -177,22 +183,14 @@ func timeNow(args string) (string, error) {
 }
 
 func sendTg(logMessage interface{}) error {
-	var (
-		token  string
-		chatId string
-	)
-
-	if len(os.Getenv("tg_token")) != 0 {
-		token = os.Getenv("tg_token")
-	}
-
-	if len(os.Getenv("tg_chat_id")) != 0 {
-		chatId = os.Getenv("tg_chat_id")
+	config, err := config()
+	if err != nil {
+		return err
 	}
 
 	logMessageStr := fmt.Sprintf("%v", logMessage)
 
-	url := "https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatId + "&parse_mode=markdown&text=" + logMessageStr
+	url := "https://api.telegram.org/bot" + config.Tg.LognTgToken + "/sendMessage?chat_id=" + config.Tg.LognTgChatId + "&parse_mode=markdown&text=" + logMessageStr
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -200,6 +198,7 @@ func sendTg(logMessage interface{}) error {
 	}
 
 	defer resp.Body.Close()
+
 	return nil
 }
 
@@ -212,39 +211,10 @@ func filePath(original string) string {
 	}
 }
 
-// CronZip used for cron zipped log
-func CronZip() error {
-	if len(os.Args) >= 2 {
-		if os.Args[1] == "logn_zip_run" {
-			err := makeZip()
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
 func makeZip() error {
-	var dirZip, isZipped, dir string
-
-	if len(os.Getenv("logn_dir")) != 0 {
-		dir = os.Getenv("logn_dir")
-	} else {
-		dir = "log/"
-	}
-
-	if len(os.Getenv("logn_dir_zip")) != 0 {
-		dirZip = os.Getenv("logn_dir_zip")
-	} else {
-		dirZip = "log_zip/"
-	}
-
-	if len(os.Getenv("is_zipped")) != 0 {
-		isZipped = os.Getenv("is_zipped")
-	} else {
-		isZipped = "false"
+	config, err := config()
+	if err != nil {
+		return err
 	}
 
 	year, err := timeNow("Y")
@@ -262,8 +232,7 @@ func makeZip() error {
 		return err
 	}
 
-	if day == "01" && isZipped == "true" {
-
+	if day == "01" && config.Zip.LognIsZipped {
 		monthInt, err := strconv.Atoi(month)
 		if err != nil {
 			return err
@@ -284,7 +253,7 @@ func makeZip() error {
 			year = strconv.Itoa(prevYear)
 		}
 
-		dirFile := dirZip + year
+		dirFile := config.Zip.LognDirZip + year
 
 		_, errYear := os.Stat(dirFile)
 		if os.IsNotExist(errYear) {
@@ -296,7 +265,7 @@ func makeZip() error {
 
 		filename := fmt.Sprintf("log_%s_%s.zip", year, strconv.Itoa(prevMonth))
 
-		baseDir := dir + year + "/" + strconv.Itoa(prevMonth) + "/"
+		baseDir := config.Log.LognDir + year + "/" + strconv.Itoa(prevMonth) + "/"
 		_, errYear = os.Stat(baseDir)
 		if os.IsNotExist(errYear) {
 			return errors.New("base dir doesn't exists")
@@ -304,13 +273,16 @@ func makeZip() error {
 
 		outDir := dirFile + "/" + filename
 
-		if _, err := os.Stat(outDir); err == nil {
-			return errors.New("file is already exists")
-		}
-
 		err = zipWriter(baseDir, outDir)
 		if err != nil {
-			fmt.Println(err.Error())
+			return err
+		}
+
+		// auto remove old logn directory after zipped
+		if config.Zip.LognDelOldDir {
+			if _, err := os.Stat(outDir); err == nil {
+				delOldLognDir(baseDir)
+			}
 		}
 	}
 
@@ -346,7 +318,6 @@ func addFiles(w *zip.Writer, basePath, baseInZip string) error {
 	}
 
 	for _, file := range files {
-		fmt.Println(basePath + file.Name())
 		if !file.IsDir() {
 			dat, err := ioutil.ReadFile(basePath + file.Name())
 			if err != nil {
@@ -366,6 +337,16 @@ func addFiles(w *zip.Writer, basePath, baseInZip string) error {
 
 			addFiles(w, newBase, baseInZip+file.Name()+"/")
 		}
+	}
+
+	return nil
+}
+
+// delOldLognDir used to delete old logn directory
+func delOldLognDir(path string) error {
+	err := os.RemoveAll(path)
+	if err != nil {
+		return err
 	}
 
 	return nil
