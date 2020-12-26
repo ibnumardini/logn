@@ -130,7 +130,7 @@ logn.ErrorLog(fmt.Sprintln("error message!"))
 
 ## Contributing
 
-Let's build this Logn library to make it even better.
+Let's build this Logn library to make it even better, see contributing guide [here](CONTRIBUTING.md)
 
 ## License
 
