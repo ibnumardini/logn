@@ -109,7 +109,7 @@ logn.ErrorLog(fmt.Sprintln("error message!"))
 #### parameter
 * if you have complex string, you can format first using ```fmt.Sprintf()``` or ```fmt.Sprintln()``` before input in the parameters
 
-### To run zip log directory using cron
+### Zipping log using cron
 * set ```logn.CronZip(1)```at your init func 
 * set like this ```./app logn_zip_run``` when run your app 
 
@@ -117,7 +117,7 @@ logn.ErrorLog(fmt.Sprintln("error message!"))
 * fill in the parameter with the position of the argument according to what you set, param type is int 
 
 ## Contributing
-Let's build this Logn library to make it even better, The contribution guide can be found in [here](CONTRIBUTIONS.md).
+Let's build this Logn library to make it even better.
 
 ## License
 Logn is under the [MIT License](LICENSE.md)
