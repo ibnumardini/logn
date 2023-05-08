@@ -106,10 +106,15 @@ func makeLog(logTypes int, title string, logMessage interface{}, loc string) err
 		return err
 	}
 
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
 	var dates = map[string]string{
-		"year":  config.Log.LognDir + year,
-		"month": config.Log.LognDir + year + "/" + month,
-		"day":   config.Log.LognDir + year + "/" + month + "/" + day,
+		"year":  fmt.Sprintf("%s/%s%s", workingDir, config.Log.LognDir, year),
+		"month": fmt.Sprintf("%s/%s%s/%s", workingDir, config.Log.LognDir, year, month),
+		"day":   fmt.Sprintf("%s/%s%s/%s/%s", workingDir, config.Log.LognDir, year, month, day),
 	}
 
 	for _, date := range dates {
@@ -122,7 +127,7 @@ func makeLog(logTypes int, title string, logMessage interface{}, loc string) err
 		}
 	}
 
-	logFile := config.Log.LognDir + year + "/" + month + "/" + day + "/" + logType + ".log"
+	logFile := fmt.Sprintf("%s/%s%s/%s/%s/%s.log", workingDir, config.Log.LognDir, year, month, day, logType)
 
 	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
