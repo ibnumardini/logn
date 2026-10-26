@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Logn is a simple Go log management library with daily, typed, Telegram, and archive-ready logging.">
+  <title>Logn — Go logging, without the noise</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+  <style>
+    :root {
+      --bg: #101312;
+      --panel: #171c19;
+      --panel-strong: #1d2520;
+      --line: #334139;
+      --text: #f0f3e9;
+      --muted: #aab8a7;
+      --dim: #708072;
+      --amber: #f4bc64;
+      --green: #8ed3a0;
+      --red: #f18c75;
+      --max: 1180px;
+      --radius: 8px;
+      --focus: 0 0 0 3px rgba(244, 188, 100, .45);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font: 16px/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: .35;
+      pointer-events: none;
+      content: "";
+      background-image: linear-gradient(rgba(142, 211, 160, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(142, 211, 160, .035) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    a { color: var(--amber); text-underline-offset: .2em; }
+    a:hover { color: #ffd18a; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: none; box-shadow: var(--focus); border-radius: 4px; }
+    .wrap { width: min(var(--max), calc(100% - 40px)); margin-inline: auto; }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--line);
+      background: rgba(16, 19, 18, .94);
+      backdrop-filter: blur(12px);
+    }
+    .header-inner { display: flex; align-items: center; gap: 24px; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font-weight: 800; text-decoration: none; }
+    .brand-mark { color: var(--green); }
+    .brand small { color: var(--dim); font-size: .72rem; font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 7px 13px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: .82rem;
+      text-decoration: none;
+    }
+    .button:hover { border-color: var(--amber); text-decoration: none; }
+    .button-primary { border-color: var(--amber); color: var(--bg); background: var(--amber); }
+    .menu-toggle { display: none; margin-left: auto; background: transparent; cursor: pointer; }
+    .menu-toggle span { display: block; width: 20px; height: 2px; margin: 4px; background: currentColor; }
+    .site-menu { display: flex; align-items: center; gap: 18px; }
+    .site-menu a { color: var(--muted); font-size: .78rem; text-decoration: none; }
+    .site-menu a:hover, .site-menu a[aria-current="location"] { color: var(--amber); }
+    .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 64px; padding-block: 64px 80px; }
+    .sidebar { position: sticky; top: 104px; align-self: start; }
+    .sidebar-label { margin: 0 0 14px; color: var(--dim); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }
+    .side-links { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--line); }
+    .side-links a { display: block; padding: 5px 14px; color: var(--muted); font-size: .8rem; text-decoration: none; }
+    .side-links a:hover, .side-links a[aria-current="location"] { color: var(--amber); border-left: 2px solid var(--amber); margin-left: -1px; }
+    main { min-width: 0; }
+    .eyebrow { margin: 0 0 16px; color: var(--green); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; }
+    h1, h2, h3 { line-height: 1.2; }
+    h1 { max-width: 820px; margin: 0; font-size: clamp(2.2rem, 7vw, 4.8rem); letter-spacing: -.08em; }
+    h1 span { color: var(--amber); }
+    h2 { margin: 0 0 20px; font-size: clamp(1.35rem, 3vw, 2rem); }
+    h3 { margin: 0 0 8px; color: var(--amber); font-size: 1rem; }
+    p { max-width: 72ch; color: var(--muted); }
+    .hero { padding: 28px 0 74px; }
+    .hero-copy { max-width: 680px; margin: 24px 0 0; font-size: 1.06rem; }
+    .prompt { color: var(--green); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 36px; }
+    .feature { min-height: 150px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(23, 28, 25, .75); }
+    .feature p { margin: 0; font-size: .82rem; }
+    .section { scroll-margin-top: 100px; padding: 62px 0; border-top: 1px solid var(--line); }
+    .section-intro { margin-top: -8px; }
+    .split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(220px, .75fr); gap: 22px; align-items: start; }
+    .code-wrap { position: relative; margin: 22px 0; }
+    pre {
+      overflow-x: auto;
+      margin: 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: #dce8d7;
+      background: #0b0e0d;
+      font: .82rem/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .copy-button {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--muted);
+      background: var(--panel);
+      font: .72rem ui-monospace, monospace;
+      cursor: pointer;
+    }
+    .copy-button:hover { color: var(--amber); border-color: var(--amber); }
+    .copy-status { min-height: 1.5em; margin: 8px 0 0; color: var(--green); font-size: .75rem; }
+    .config-list { display: grid; gap: 13px; margin: 0; }
+    .config-list div { padding-left: 14px; border-left: 2px solid var(--line); }
+    .config-list dt { color: var(--amber); font-size: .84rem; }
+    .config-list dd { margin: 2px 0 0; color: var(--muted); font-size: .78rem; }
+    .note { padding: 15px 17px; border: 1px solid rgba(142, 211, 160, .3); border-radius: var(--radius); color: var(--muted); background: rgba(142, 211, 160, .06); font-size: .82rem; }
+    .note strong { color: var(--green); }
+    footer { padding: 28px 0 50px; border-top: 1px solid var(--line); color: var(--dim); font-size: .78rem; }
+    footer p { margin: 0; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 10px; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 180px minmax(0, 1fr); gap: 34px; }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 767px) {
+      .wrap { width: min(100% - 28px, var(--max)); }
+      .header-inner { position: relative; min-height: 64px; flex-wrap: wrap; gap: 10px; }
+      .header-actions { display: none; }
+      .menu-toggle { display: block; }
+      .site-menu { display: grid; flex-basis: 100%; gap: 0; padding: 8px 0 14px; }
+      .site-menu[hidden] { display: none; }
+      .site-menu a { padding: 8px 0; }
+      .layout { display: block; padding-top: 28px; }
+      .sidebar { display: none; }
+      .hero { padding: 20px 0 52px; }
+      .feature-grid, .split { grid-template-columns: 1fr; }
+      .section { padding: 46px 0; }
+    }
+    @media (min-width: 768px) {
+      .site-menu[hidden] { display: flex; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body x-data="lognDocs()" x-init="init()">
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#overview" @click="closeMenu()">
+        <span class="brand-mark">~/</span> logn <small>go logging</small>
+      </a>
+      <button class="menu-toggle button" type="button" aria-label="Toggle navigation" aria-controls="site-menu" aria-expanded="false" :aria-expanded="menuOpen.toString()" @click="toggleMenu()" @keydown.escape="closeMenu(true)" x-ref="menuToggle">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-menu" id="site-menu" aria-label="Primary navigation" :hidden="isMobile && !menuOpen" @keydown.escape="closeMenu(true)">
+        <a href="#overview" @click="closeMenu()">Overview</a>
+        <a href="#installation" @click="closeMenu()">Install</a>
+        <a href="#configuration" @click="closeMenu()">Config</a>
+        <a href="#usage" @click="closeMenu()">Usage</a>
+        <a href="#cron" @click="closeMenu()">Cron</a>
+        <a href="#contributing" @click="closeMenu()">Contribute</a>
+      </nav>
+      <div class="header-actions">
+        <a class="button" href="https://github.com/ibnumardini/logn">GitHub ↗</a>
+        <a class="button button-primary" href="#installation">Install</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap layout">
+    <aside class="sidebar" aria-label="On this page">
+      <p class="sidebar-label">On this page</p>
+      <ul class="side-links">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#configuration">Configuration</a></li>
+        <li><a href="#usage">Usage</a></li>
+        <li><a href="#cron">Cron zipping</a></li>
+        <li><a href="#contributing">Contributing</a></li>
+      </ul>
+    </aside>
+
+    <main>
+      <section id="overview" class="hero" aria-labelledby="overview-title">
+        <p class="eyebrow"><span class="prompt">$</span> go get github.com/ibnumardini/logn</p>
+        <h1 id="overview-title">Logs that stay<br><span>out of your way.</span></h1>
+        <p class="hero-copy">Logn is a small Go logging library for applications that need daily, type-based logs without building a logging stack. Keep useful files, route warnings and errors to Telegram, and archive old data on your own schedule.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#installation">Start logging →</a>
+          <a class="button" href="https://github.com/ibnumardini/logn/blob/master/README.md">Read the README ↗</a>
+        </div>
+        <div class="feature-grid" aria-label="Logn features">
+          <article class="feature"><h3>01 / Daily files</h3><p>Organize info, warning, and error output by year, month, and day.</p></article>
+          <article class="feature"><h3>02 / Typed logs</h3><p>Use a focused API that makes the intent of each log line clear.</p></article>
+          <article class="feature"><h3>03 / Telegram</h3><p>Optionally report warning and error logs through your bot.</p></article>
+          <article class="feature"><h3>04 / Archives</h3><p>Zip monthly log data and optionally remove old directories.</p></article>
+        </div>
+      </section>
+
+      <section id="installation" class="section" aria-labelledby="installation-title">
+        <p class="eyebrow">01 / install</p>
+        <h2 id="installation-title">Add Logn to a Go app.</h2>
+        <p class="section-intro">Install the package with Go's package manager, then add a configuration file at your project root.</p>
+        <div class="code-wrap">
+          <pre id="install-code"><code>go get -u github.com/ibnumardini/logn</code></pre>
+          <button class="copy-button" type="button" @click="copy('go get -u github.com/ibnumardini/logn', 'install')">Copy</button>
+          <p class="copy-status" aria-live="polite" x-text="copyState.install || ''"></p>
+        </div>
+      </section>
+
+      <section id="configuration" class="section" aria-labelledby="configuration-title">
+        <p class="eyebrow">02 / configure</p>
+        <h2 id="configuration-title">One JSON file. Four clear concerns.</h2>
+        <div class="split">
+          <div class="code-wrap">
+            <pre id="config-code" x-ref="configCode"><code>{
+  "logn_is_active": true,
+  "log": {
+    "logn_dir": "log/",
+    "logn_default_loc": "Asia/Jakarta",
+    "logn_print_console": true
+  },
+  "tg": {
+    "logn_tg_send": false,
+    "logn_app_name": "Logn-App LOG",
+    "logn_tg_token": "1416xxxxx:AAF3VOBjt7rIeO4tUL_dHxG0qxxxxxxxxx",
+    "logn_tg_chat_id": "-4947xxxxx"
+  },
+  "zip": {
+    "logn_is_zipped": false,
+    "logn_dir_zip": "log_zip/",
+    "logn_del_old_dir": false
+  }
+}</code></pre>
+            <button class="copy-button" type="button" @click="copy($refs.configCode.innerText, 'config')">Copy</button>
+            <p class="copy-status" aria-live="polite" x-text="copyState.config || ''"></p>
+          </div>
+          <dl class="config-list">
+            <div><dt>logn_is_active</dt><dd>Enable or disable the Logn package.</dd></div>
+            <div><dt>log</dt><dd>Choose the log directory, timezone, and console output.</dd></div>
+            <div><dt>tg</dt><dd>Set Telegram reporting, app title, bot token, and chat ID.</dd></div>
+            <div><dt>zip</dt><dd>Enable zipping, choose its directory, and optionally delete old directories.</dd></div>
+          </dl>
+        </div>
+        <p class="note"><strong>Keep credentials private.</strong> The values above are redacted examples. Copy the full structure from the <a href="https://github.com/ibnumardini/logn/blob/master/logn_config_sample.json">sample config</a>, then supply your own secrets locally.</p>
+      </section>
+
+      <section id="usage" class="section" aria-labelledby="usage-title">
+        <p class="eyebrow">03 / use</p>
+        <h2 id="usage-title">Three calls cover the common path.</h2>
+        <p class="section-intro">Pass a string or a formatted value. Warning and error calls include source context and can be sent to Telegram when enabled.</p>
+        <div class="code-wrap">
+          <pre id="usage-code" x-ref="usageCode"><code>logn.InfoLog("hello world")
+logn.WarningLog(fmt.Sprintf("%s\n", warningInfo))
+logn.ErrorLog(fmt.Sprintln("error message!"))</code></pre>
+          <button class="copy-button" type="button" @click="copy($refs.usageCode.innerText, 'usage')">Copy</button>
+          <p class="copy-status" aria-live="polite" x-text="copyState.usage || ''"></p>
+        </div>
+      </section>
+
+      <section id="cron" class="section" aria-labelledby="cron-title">
+        <p class="eyebrow">04 / archive</p>
+        <h2 id="cron-title">Zip logs when your app starts.</h2>
+        <p class="section-intro">Enable the zip configuration, register the argument position with <code>CronZip</code>, and invoke your binary with <code>logn_zip_run</code>. The library checks the configured monthly path.</p>
+        <div class="code-wrap">
+          <pre id="cron-code" x-ref="cronCode"><code>func init() {
+    logn.CronZip(1)
+}
+
+./app logn_zip_run</code></pre>
+          <button class="copy-button" type="button" @click="copy($refs.cronCode.innerText, 'cron')">Copy</button>
+          <p class="copy-status" aria-live="polite" x-text="copyState.cron || ''"></p>
+        </div>
+      </section>
+
+      <section id="contributing" class="section" aria-labelledby="contributing-title">
+        <p class="eyebrow">05 / community</p>
+        <h2 id="contributing-title">Make the next log line better.</h2>
+        <p>Logn is open source and intentionally small. Read the contribution guide before opening a change, and check the license for usage terms.</p>
+        <div class="footer-links">
+          <a class="button" href="https://github.com/ibnumardini/logn/blob/master/CONTRIBUTING.md">Contribution guide ↗</a>
+          <a class="button" href="https://github.com/ibnumardini/logn/blob/master/LICENSE.md">MIT license ↗</a>
+        </div>
+      </section>
+
+      <footer>
+        <p><span class="prompt">logn</span> — simple log management for Go.</p>
+        <div class="footer-links">
+          <a href="https://github.com/ibnumardini/logn">GitHub</a>
+          <a href="https://github.com/ibnumardini/logn/blob/master/README.md">README</a>
+          <a href="https://github.com/ibnumardini/logn/blob/master/LICENSE.md">License</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function lognDocs() {
+      return {
+        menuOpen: false,
+        activeSection: 'overview',
+        isMobile: false,
+        copyState: { install: '', config: '', usage: '', cron: '' },
+        sectionIds: ['overview', 'installation', 'configuration', 'usage', 'cron', 'contributing'],
+        preserveInitialHash: false,
+        observer: null,
+        statusTimers: {},
+        init() {
+          this.isMobile = window.matchMedia('(max-width: 767px)').matches;
+          const hash = window.location.hash.slice(1);
+          if (this.sectionIds.includes(hash)) {
+            this.activeSection = hash;
+            this.preserveInitialHash = true;
+          }
+          this.updateActiveLinks();
+          this.setupResponsiveState();
+          this.observeSections();
+          window.addEventListener('resize', () => this.setupResponsiveState());
+          window.addEventListener('hashchange', () => this.setActiveFromHash());
+        },
+        setupResponsiveState() {
+          this.isMobile = window.matchMedia('(max-width: 767px)').matches;
+          if (!this.isMobile) this.menuOpen = false;
+        },
+        toggleMenu() { this.menuOpen = !this.menuOpen; },
+        closeMenu(returnFocus = false) {
+          this.menuOpen = false;
+          if (returnFocus) this.$nextTick(() => this.$refs.menuToggle.focus());
+        },
+        setActiveFromHash() {
+          const hash = window.location.hash.slice(1);
+          if (this.sectionIds.includes(hash)) {
+            this.activeSection = hash;
+            this.updateActiveLinks();
+          }
+        },
+        updateActiveLinks() {
+          document.querySelectorAll('a[href^="#"]').forEach((link) => {
+            if (this.sectionIds.includes(link.getAttribute('href').slice(1))) {
+              if (link.getAttribute('href').slice(1) === this.activeSection) link.setAttribute('aria-current', 'location');
+              else link.removeAttribute('aria-current');
+            }
+          });
+        },
+        observeSections() {
+          const sections = this.sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
+          this.observer = new IntersectionObserver(() => {
+            if (this.preserveInitialHash) {
+              this.preserveInitialHash = false;
+              return;
+            }
+            this.selectNearestSection();
+          }, { threshold: [0, 1] });
+          sections.forEach((section) => this.observer.observe(section));
+          if (!this.preserveInitialHash) this.selectNearestSection();
+        },
+        selectNearestSection() {
+          const line = window.innerHeight * 0.35;
+          const sections = this.sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
+          const atOrAbove = sections.filter((section) => section.getBoundingClientRect().top <= line);
+          const candidate = atOrAbove.length
+            ? atOrAbove.reduce((closest, section) => section.getBoundingClientRect().top > closest.getBoundingClientRect().top ? section : closest)
+            : sections.find((section) => section.getBoundingClientRect().top > line);
+          if (candidate && candidate.id !== this.activeSection) {
+            this.activeSection = candidate.id;
+            this.updateActiveLinks();
+          }
+        },
+        copy(text, key) {
+          this.copyState[key] = '';
+          clearTimeout(this.statusTimers[key]);
+          const fail = () => this.setCopyStatus(key, 'Clipboard unavailable. Select and copy the snippet manually.');
+          if (!navigator.clipboard || !window.isSecureContext) {
+            fail();
+            return;
+          }
+          try {
+            const result = navigator.clipboard.writeText(text);
+            Promise.resolve(result).then(
+              () => this.setCopyStatus(key, 'Copied to clipboard.'),
+              fail
+            );
+          } catch (error) {
+            fail();
+          }
+        },
+        setCopyStatus(key, message) {
+          this.copyState[key] = message;
+          clearTimeout(this.statusTimers[key]);
+          this.statusTimers[key] = setTimeout(() => { this.copyState[key] = ''; }, 3000);
+        }
+      };
+    }
+  </script>
+</body>
+</html>
