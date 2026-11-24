@@ -15,7 +15,6 @@ import (
 	"time"
 )
 
-// InfoLog used for log type info
 func InfoLog(logMessage interface{}) error {
 	err := makeLog(0, "INFO :", logMessage, "")
 	if err != nil {
@@ -25,7 +24,6 @@ func InfoLog(logMessage interface{}) error {
 	return nil
 }
 
-// WarningLog used for log type warning
 func WarningLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
 	loc := fmt.Sprintf("- file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
@@ -38,7 +36,6 @@ func WarningLog(logMessage interface{}) error {
 	return nil
 }
 
-// ErrorLog used for log type error
 func ErrorLog(logMessage interface{}) error {
 	function, fileName, line, _ := runtime.Caller(1)
 	loc := fmt.Sprintf("- file: *%s*  func: *%s* line: *%d*", filePath(fileName), runtime.FuncForPC(function).Name(), line)
@@ -51,7 +48,6 @@ func ErrorLog(logMessage interface{}) error {
 	return nil
 }
 
-// CronZip used for run logn zip automate with cron
 func CronZip(argsPos int) error {
 	if len(os.Args) >= argsPos+1 {
 		if os.Args[argsPos] == "logn_zip_run" {
@@ -283,7 +279,6 @@ func makeZip() error {
 			return err
 		}
 
-		// auto remove old logn directory after zipped
 		if config.Zip.LognDelOldDir {
 			if _, err := os.Stat(outDir); err == nil {
 				delOldLognDir(baseDir)
@@ -347,7 +342,6 @@ func addFiles(w *zip.Writer, basePath, baseInZip string) error {
 	return nil
 }
 
-// delOldLognDir used to delete old logn directory
 func delOldLognDir(path string) error {
 	err := os.RemoveAll(path)
 	if err != nil {

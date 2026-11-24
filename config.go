@@ -31,7 +31,6 @@ type Zip struct {
 	LognDelOldDir bool   `json:"logn_del_old_dir"`
 }
 
-// config used to load config file
 func config() (Config, error) {
 	var config Config
 
