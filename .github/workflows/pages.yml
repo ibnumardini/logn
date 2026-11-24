@@ -28,7 +28,7 @@ jobs:
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs/web
+          path: ./docs
 
   deploy:
     runs-on: ubuntu-latest

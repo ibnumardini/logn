@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Logn is a simple Go log management library with daily, typed, Telegram, and archive-ready logging.">
+  <title>Logn &bull; Go Log Management Library</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="script.js"></script>
+</head>
+<body class="text-gray-900 font-serif antialiased leading-relaxed">
+  <div class="paper-sheet bg-paper max-w-3xl lg:max-w-4xl mx-auto sm:my-6 lg:my-10 px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10">
+    <header class="rule-double-b pb-3">
+      <nav id="site-menu" aria-label="Document navigation" class="flex flex-wrap items-center justify-between gap-2">
+        <ul class="flex flex-wrap items-center gap-1 list-none my-0" style="padding: 0;">
+          <li><a class="nav-link" href="#overview" aria-current="location">Overview</a></li>
+          <li><a class="nav-link" href="#installation">Install</a></li>
+          <li><a class="nav-link" href="#configuration">Config</a></li>
+          <li><a class="nav-link" href="#usage">Usage</a></li>
+          <li><a class="nav-link" href="#cron">Cron</a></li>
+          <li><a class="nav-link" href="#contributing">License</a></li>
+        </ul>
+        <a class="doc-link text-sm font-bold" href="https://github.com/ibnumardini/logn">GitHub</a>
+      </nav>
+    </header>
+
+    <main class="min-w-0">
+      <section id="overview" class="py-6 scroll-mt-6" aria-labelledby="overview-title">
+        <h1 id="overview-title" class="flex flex-wrap items-baseline gap-3 mt-1 mb-3">
+          <img src="logo.png" alt="Logn" width="150" height="65" fetchpriority="high" class="logo-img">
+          <span class="text-lg font-normal italic text-gray-700">:/logen/</span>
+        </h1>
+        <p class="text-lg max-w-prose my-0">
+          Simple Go log management library for daily, type-based file logging, optional Telegram error alerting, and monthly zip archiving.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6 items-start">
+          <div class="md:col-span-6">
+            <ul class="grid grid-cols-1 gap-3 pl-5 my-0 list-disc">
+              <li><strong>Daily directories:</strong> Organizes logs automatically by <code class="font-mono text-sm">YYYY/MM/DD</code>.</li>
+              <li><strong>Typed files:</strong> Splits output into <code class="font-mono text-sm bg-slate-50 px-1.5 py-0.5 border">info.log</code>, <code class="font-mono text-sm bg-slate-50 px-1.5 py-0.5 border">warning.log</code>, and <code class="font-mono text-sm bg-slate-50 px-1.5 py-0.5 border">error.log</code>.</li>
+              <li><strong>Telegram alerts:</strong> Forwards warning and error logs to a Telegram chat via bot token.</li>
+              <li><strong>Monthly zip:</strong> Compresses past months into <code class="font-mono text-sm">log_MM_YYYY.zip</code> and optionally deletes old folders.</li>
+            </ul>
+            <div class="mt-4">
+              <a class="doc-link text-sm" href="https://github.com/ibnumardini/logn/blob/master/README.md">View full README.md</a>
+            </div>
+          </div>
+
+          <div class="md:col-span-6 code-block">
+            <div class="code-toolbar">
+              <span class="archival-label text-sm">Fig. 1: Directory Tree</span>
+            </div>
+            <pre class="code-pre"><code>go-app
+├── main
+├── log/2020/12
+│   ├── 01/{info,warning,error}.log
+│   └── 02/{info,warning,error}.log
+└── log_zip
+    ├── 2019/log_12_2019.zip
+    └── 2020/log_01_2020.zip</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="installation" class="py-6 border-t scroll-mt-6" aria-labelledby="installation-title">
+        <h2 id="installation-title" class="text-2xl font-bold pb-2 rule-double-b mt-1 mb-4">
+          <span class="section-num">§ 1.</span>Installation
+        </h2>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <span class="archival-label text-sm">Shell Command</span>
+            <div class="flex items-center gap-3">
+              <span id="status-install" class="copy-status" role="status" aria-live="polite" data-state="idle"></span>
+              <button class="doc-btn copy-btn" type="button" data-copy-target="install-code" data-copy-key="install" aria-label="Copy installation command">Copy</button>
+            </div>
+          </div>
+          <pre id="install-code" class="code-pre"><code>go get -u github.com/ibnumardini/logn</code></pre>
+        </div>
+      </section>
+
+      <section id="configuration" class="py-6 border-t scroll-mt-6" aria-labelledby="configuration-title">
+        <h2 id="configuration-title" class="text-2xl font-bold pb-2 rule-double-b mt-1 mb-3">
+          <span class="section-num">§ 2.</span>Configuration
+        </h2>
+        <p class="max-w-prose mb-4 my-0">
+          Create <code class="font-mono text-sm bg-slate-50 px-1.5 py-0.5 border">logn_config.json</code> in your project root (see <a class="doc-link text-sm" href="https://github.com/ibnumardini/logn/blob/master/logn_config_sample.json">logn_config_sample.json</a>; token and chat ID below are redacted placeholders).
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div class="lg:col-span-7 min-w-0 code-block">
+            <div class="code-toolbar">
+              <span class="archival-label text-sm">logn_config.json</span>
+              <div class="flex items-center gap-3">
+                <span id="status-config" class="copy-status" role="status" aria-live="polite" data-state="idle"></span>
+                <button class="doc-btn copy-btn" type="button" data-copy-target="config-code" data-copy-key="config" aria-label="Copy JSON configuration">Copy</button>
+              </div>
+            </div>
+            <pre id="config-code" class="code-pre"><code>{
+  "logn_is_active": true,
+  "log": {
+    "logn_dir": "log/",
+    "logn_default_loc": "Asia/Jakarta",
+    "logn_print_console": true
+  },
+  "tg": {
+    "logn_tg_send": false,
+    "logn_app_name": "Logn-App LOG",
+    "logn_tg_token": "1416xxxxx:AAF3VOBjt7rIeO4tUL_dHxG0qxxxxxxxxx",
+    "logn_tg_chat_id": "-4947xxxxx"
+  },
+  "zip": {
+    "logn_is_zipped": false,
+    "logn_dir_zip": "log_zip/",
+    "logn_del_old_dir": false
+  }
+}</code></pre>
+          </div>
+
+          <dl class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 my-0">
+            <div class="rule-dashed-b pb-3">
+              <dt class="font-mono text-sm font-bold">logn_is_active</dt>
+              <dd class="text-sm mt-1">Enable or disable Logn globally.</dd>
+            </div>
+            <div class="rule-dashed-b pb-3">
+              <dt class="font-mono text-sm font-bold">log</dt>
+              <dd class="text-sm mt-1"><code class="font-mono">logn_dir</code> (output path), <code class="font-mono">logn_default_loc</code> (timezone), <code class="font-mono">logn_print_console</code> (stdout echo).</dd>
+            </div>
+            <div class="rule-dashed-b pb-3">
+              <dt class="font-mono text-sm font-bold">tg</dt>
+              <dd class="text-sm mt-1"><code class="font-mono">logn_tg_send</code> (toggle), <code class="font-mono">logn_app_name</code> (header), <code class="font-mono">logn_tg_token</code>, <code class="font-mono">logn_tg_chat_id</code>.</dd>
+            </div>
+            <div class="rule-dashed-b pb-3">
+              <dt class="font-mono text-sm font-bold">zip</dt>
+              <dd class="text-sm mt-1"><code class="font-mono">logn_is_zipped</code> (monthly archive), <code class="font-mono">logn_dir_zip</code> (target path), <code class="font-mono">logn_del_old_dir</code> (cleanup).</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section id="usage" class="py-6 border-t scroll-mt-6" aria-labelledby="usage-title">
+        <h2 id="usage-title" class="text-2xl font-bold pb-2 rule-double-b mt-1 mb-3">
+          <span class="section-num">§ 3.</span>Usage
+        </h2>
+        <p class="max-w-prose mb-4 my-0">
+          Pass a string or format values with <code class="font-mono text-sm">fmt.Sprintf()</code> / <code class="font-mono text-sm">fmt.Sprintln()</code>. Warning and error calls include file/line context and trigger Telegram reports when enabled.
+        </p>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <span class="archival-label text-sm">Go Source</span>
+            <div class="flex items-center gap-3">
+              <span id="status-usage" class="copy-status" role="status" aria-live="polite" data-state="idle"></span>
+              <button class="doc-btn copy-btn" type="button" data-copy-target="usage-code" data-copy-key="usage" aria-label="Copy Go usage snippet">Copy</button>
+            </div>
+          </div>
+          <pre id="usage-code" class="code-pre"><code>logn.InfoLog("hello world")
+logn.WarningLog(fmt.Sprintf("%s\n", warningInfo))
+logn.ErrorLog(fmt.Sprintln("error message!"))</code></pre>
+        </div>
+      </section>
+
+      <section id="cron" class="py-6 border-t scroll-mt-6" aria-labelledby="cron-title">
+        <h2 id="cron-title" class="text-2xl font-bold pb-2 rule-double-b mt-1 mb-3">
+          <span class="section-num">§ 4.</span>Cron Zipping
+        </h2>
+        <p class="max-w-prose mb-4 my-0">
+          Set <code class="font-mono text-sm">logn_is_zipped: true</code>, pass the CLI argument index to <code class="font-mono text-sm bg-slate-50 px-1.5 py-0.5 border">logn.CronZip(1)</code> in <code class="font-mono text-sm">init()</code>, and execute your binary with <code class="font-mono text-sm bg-slate-50 px-1.5 py-0.5 border">logn_zip_run</code>.
+        </p>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <span class="archival-label text-sm">Go &amp; CLI</span>
+            <div class="flex items-center gap-3">
+              <span id="status-cron" class="copy-status" role="status" aria-live="polite" data-state="idle"></span>
+              <button class="doc-btn copy-btn" type="button" data-copy-target="cron-code" data-copy-key="cron" aria-label="Copy cron zipping snippet">Copy</button>
+            </div>
+          </div>
+          <pre id="cron-code" class="code-pre"><code>func init() {
+    logn.CronZip(1)
+}
+
+// Run via cron:
+// ./app logn_zip_run</code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer id="contributing" class="py-6 rule-double-t scroll-mt-6" aria-labelledby="contributing-title">
+      <h2 id="contributing-title" class="text-2xl font-bold pb-2 rule-double-b mt-1 mb-3">
+        <span class="section-num">§ 5.</span>Contributing &amp; License
+      </h2>
+      <p class="max-w-prose mb-4 my-0">
+        Logn is open source under the MIT License. Review the contribution guide before opening issues or pull requests.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a class="doc-link" href="https://github.com/ibnumardini/logn/blob/master/CONTRIBUTING.md">Contributing Guide</a>
+        <a class="doc-link" href="https://github.com/ibnumardini/logn/blob/master/LICENSE.md">MIT License</a>
+        <a class="doc-link" href="https://github.com/ibnumardini/logn">GitHub Repository</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
